@@ -114,9 +114,9 @@ int main(int argc, char **argv)
 			if ( (alpha >= 0.0) && (alpha <= 1.0) && (beta >= 0.0) 
 				&& (beta <= 1.0) && (gamma >= 0.0) && (gamma <= 1.0) )
 			{
-				r = 255;
-				g = 0;
-				b = 0;
+				r = (int)(alpha*tri.v1.r + beta*tri.v2.r + gamma*tri.v3.r);
+				g = (int)(alpha*tri.v1.g + beta*tri.v2.g + gamma*tri.v3.g);
+				b = (int)(alpha*tri.v1.b + beta*tri.v2.b + gamma*tri.v3.b);
 				image->setPixel(x, y, r, g, b);
 			}
 		}
