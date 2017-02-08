@@ -12,14 +12,15 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-	if(argc != 10) {
+	if(argc != 19) 
+	{
 		cout << "Improper usage: wrong number of arguments" << endl;
 		return 0;
 	}
 	
 	unsigned char r, g, b;
+	double alpha, beta, gamma, denom;
 	int minX, minY, maxX, maxY;
-	
 	// Output filename
 	string filename(argv[1]);
 	// Width of image
@@ -30,13 +31,31 @@ int main(int argc, char **argv)
 	Triangle tri;
 	tri.v1.x = atoi(argv[4]);
 	tri.v1.y = atoi(argv[5]);
-	tri.v2.x = atoi(argv[6]);
-	tri.v2.y = atoi(argv[7]);
-	tri.v3.x = atoi(argv[8]);
-	tri.v3.y = atoi(argv[9]);
+	tri.v1.r = atoi(argv[6]);
+	tri.v1.g = atoi(argv[7]);
+	tri.v1.b = atoi(argv[8]);
+	tri.v2.x = atoi(argv[9]);
+	tri.v2.y = atoi(argv[10]);
+	tri.v2.r = atoi(argv[11]);
+	tri.v2.g = atoi(argv[12]);
+	tri.v2.b = atoi(argv[13]);
+	tri.v3.x = atoi(argv[14]);
+	tri.v3.y = atoi(argv[15]);
+	tri.v3.r = atoi(argv[16]);
+	tri.v3.g = atoi(argv[17]);
+	tri.v3.b = atoi(argv[18]);
+	
+	/*
+	// Output vertices as ordered pairs to terminal - for testing
+	cout << "v1: (" << tri.v1.x << ", " << tri.v1.y << ")" << endl;
+	cout << "v2: (" << tri.v2.x << ", " << tri.v2.y << ")" << endl;
+	cout << "v3: (" << tri.v3.x << ", " << tri.v3.y << ")" << endl;
+	*/
+	
 	// Create the image. We're using a `shared_ptr`, a C++11 feature.
 	auto image = make_shared<Image>(width, height);
-	// Draw bounding box
+	
+	// Compute bounding box
 	minX = tri.v1.x, maxX = tri.v1.x;
 	minY = tri.v1.y, maxY = tri.v1.y;
 	if (minX - tri.v2.x > 0)
@@ -71,30 +90,45 @@ int main(int argc, char **argv)
 	{
 		maxY = tri.v3.y;
 	}
-	for(int y = minY; y <= maxY; ++y) {
-		for(int x = minX; x <= maxX; ++x) {
-			if (x % 10 < 5)
+	
+	// Draw triangle
+	for(int y = minY; y <= maxY; ++y) 
+	{
+		for(int x = minX; x <= maxX; ++x) 
+		{
+			// Calculate alpha, beta, gamma
+			denom = (double)(tri.v2.y - tri.v3.y) * (double)(tri.v1.x - tri.v3.x);
+			denom += (double)(tri.v3.x - tri.v2.x) * (double)(tri.v1.y - tri.v3.y);
+			
+			alpha = (double)(tri.v2.y - tri.v3.y) * (double)(x - tri.v3.x);
+			alpha += (double)(tri.v3.x - tri.v2.x) * (double)(y - tri.v3.y);
+			alpha = alpha / denom;
+			
+			beta = (double)(tri.v3.y - tri.v1.y) * (double)(x - tri.v3.x);
+			beta += (double)(tri.v1.x - tri.v3.x) * (double)(y - tri.v3.y);
+			beta = beta / denom;
+			
+			gamma = (1 - alpha) - beta;
+			
+			// Draw pixel if in triangle
+			if ( (alpha >= 0.0) && (alpha <= 1.0) && (beta >= 0.0) 
+				&& (beta <= 1.0) && (gamma >= 0.0) && (gamma <= 1.0) )
 			{
 				r = 255;
 				g = 0;
 				b = 0;
+				image->setPixel(x, y, r, g, b);
 			}
-			else
-			{
-				r = 0;
-				g = 255;
-				b = 0;
-			}
-			image->setPixel(x, y, r, g, b);
 		}
 	}
-	// Draw triangle vertices (as white)
-	r = 255;
-	g = 255;
-	b = 255;
-	image->setPixel(tri.v1.x, tri.v1.y, r, g, b);
-	image->setPixel(tri.v2.x, tri.v2.y, r, g, b);
-	image->setPixel(tri.v3.x, tri.v3.y, r, g, b);
+	
+	/*
+	// Draw triangle vertices - for testing
+	image->setPixel(tri.v1.x, tri.v1.y, tri.v1.r, tri.v1.g, tri.v1.b);
+	image->setPixel(tri.v2.x, tri.v2.y, tri.v2.r, tri.v2.g, tri.v2.b);
+	image->setPixel(tri.v3.x, tri.v3.y, tri.v3.r, tri.v3.g, tri.v3.b);
+	*/
+	
 	// Write image to file
 	image->writeToFile(filename);
 	return 0;
